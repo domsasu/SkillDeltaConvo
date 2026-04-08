@@ -1,7 +1,6 @@
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Icons } from './Icons';
-import { SkillGapTool } from './SkillGapTool';
 import { TrendingCourseColumn } from './TrendingCourseColumn';
 import { trendingItems } from './trendingItems';
 import {
@@ -45,8 +44,6 @@ interface HomeProps {
   dailyTimeGoal?: number;
   introModalClosed?: boolean;
   enrolledCoursesLoading?: boolean;
-  /** From Header career popover — scroll to Skill Gap and expand full tool. */
-  skillGapExpandRequestToken?: number;
 }
 
 // Calculate career progress based on skills XP (matches MyLearning.tsx logic)
@@ -431,7 +428,6 @@ export const Home: React.FC<HomeProps> = ({
     dailyTimeGoal = 60,
     introModalClosed = true,
     enrolledCoursesLoading = false,
-    skillGapExpandRequestToken = 0,
 }) => {
   const streakHoursCompletedToday = 0;
 
@@ -872,8 +868,6 @@ export const Home: React.FC<HomeProps> = ({
 
       {/* White Content Area */}
       <div className="max-w-[1440px] mx-auto px-6 py-10 space-y-12">
-
-        <SkillGapTool expandRequestToken={skillGapExpandRequestToken} />
 
         {/* Course Recommendations - loads in after top section */}
         <CourseRecommendationsRail />

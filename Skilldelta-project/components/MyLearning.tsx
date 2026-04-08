@@ -1,10 +1,9 @@
 
 import React, { useState } from 'react';
+import { useSavedSkillGapCourses } from '@/contexts/saved-skill-gap-courses-context';
 import { CourseData, Lesson, Status } from '../types';
 import { courseCompletionDisplayPercent } from '../skills';
 import { LetterAvatar } from './WeeklyLearningLeaderboard';
-import { SkillGapTool } from './SkillGapTool';
-
 interface MyLearningProps {
   onContinueCourse: () => void;
   activeLesson: Lesson;
@@ -15,14 +14,13 @@ interface MyLearningProps {
   assessmentResults?: Record<string, number> | null;
 }
 
-type TabId = 'in-progress' | 'saved' | 'completed' | 'skills' | 'career-tools';
+type TabId = 'in-progress' | 'saved' | 'completed' | 'skills';
 
 const TABS: { id: TabId; label: string; newBadge?: boolean }[] = [
   { id: 'in-progress', label: 'In progress' },
   { id: 'completed', label: 'Completed' },
   { id: 'saved', label: 'Saved' },
   { id: 'skills', label: 'Certificates & Badges' },
-  { id: 'career-tools', label: 'Career tools', newBadge: true },
 ];
 
 /* ------------------------------------------------------------------ */
@@ -583,6 +581,10 @@ export const MyLearning: React.FC<MyLearningProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<TabId>('in-progress');
   const [selectedCohort, setSelectedCohort] = useState<CohortId>('careerswitchers');
+  const { collections: savedSkillGapCollections } = useSavedSkillGapCourses();
+
+  /** Match In progress: other tabs use the full row width (calendar/leaderboard only on In progress). */
+  const showRightSidebar = activeTab === "in-progress";
 
   return (
     <div className="flex flex-col flex-1 overflow-y-auto max-w-[1440px] mx-auto bg-[var(--cds-color-white)] custom-scrollbar">
@@ -601,9 +603,9 @@ export const MyLearning: React.FC<MyLearningProps> = ({
         </div>
       </div>
 
-      {/* Tabs — underline style per Figma */}
+      {/* Tabs — equal full-width cells; active underline spans each tab column */}
       <div className="sticky top-0 z-10 bg-[var(--cds-color-white)] px-6 border-b border-[var(--cds-color-grey-100)]">
-        <div className="flex gap-6">
+        <div className="flex w-full">
           {TABS.map((tab) => {
             const isActive = tab.id === activeTab;
             return (
@@ -611,16 +613,16 @@ export const MyLearning: React.FC<MyLearningProps> = ({
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className={`cds-body-secondary inline-flex items-center gap-2 py-3 transition-colors border-b-2 ${
+                className={`cds-body-secondary flex min-w-0 flex-1 items-center justify-center gap-2 px-2 py-3 text-center transition-colors border-b-2 ${
                   isActive
                     ? 'border-[var(--cds-color-grey-975)] text-[var(--cds-color-grey-975)]'
                     : 'border-transparent text-[var(--cds-color-grey-600)] hover:text-[var(--cds-color-grey-975)]'
                 }`}
               >
-                {tab.label}
+                <span className="leading-snug">{tab.label}</span>
                 {tab.newBadge ? (
                   <span
-                    className="rounded-[var(--cds-border-radius-100)] bg-[var(--cds-color-green-100)] px-2 py-0.5 font-semibold text-[var(--cds-color-green-700)]"
+                    className="shrink-0 rounded-[var(--cds-border-radius-100)] bg-[var(--cds-color-green-100)] px-2 py-0.5 font-semibold text-[var(--cds-color-green-700)]"
                     style={{ fontSize: '10px', lineHeight: '14px' }}
                   >
                     New
@@ -632,10 +634,12 @@ export const MyLearning: React.FC<MyLearningProps> = ({
         </div>
       </div>
 
-      {/* Two-column content */}
+      {/* Two-column content (sidebar only on In progress) */}
       <div className="flex gap-6 px-6 pb-10 pt-6">
-        {/* Main content - left */}
-        <div className="flex-1 min-w-0 space-y-5">
+        {/* Main content */}
+        <div
+          className={`min-w-0 space-y-5 ${showRightSidebar ? "flex-1" : "w-full max-w-none"}`}
+        >
           {activeTab === 'in-progress' && (
             <>
               <SpecializationCard onResume={onContinueCourse} />
@@ -643,9 +647,46 @@ export const MyLearning: React.FC<MyLearningProps> = ({
             </>
           )}
 
-          {activeTab === 'saved' && (
-            <EmptyTab icon="bookmark" title="Saved courses" body="Courses you save will appear here so you can come back to them later." />
-          )}
+          {activeTab === 'saved' &&
+            (savedSkillGapCollections.length === 0 ? (
+              <EmptyTab
+                icon="bookmark"
+                title="Saved courses"
+                body="Courses you save will appear here so you can come back to them later."
+              />
+            ) : (
+              <div className="space-y-8">
+                {savedSkillGapCollections.map((col) => (
+                  <div
+                    key={col.id}
+                    className="rounded-[var(--cds-border-radius-200)] border border-[var(--cds-color-grey-100)] bg-[var(--cds-color-white)] p-5"
+                  >
+                    <h3 className="cds-subtitle-md mb-4 text-[var(--cds-color-grey-975)]">{col.label}</h3>
+                    <div className="flex flex-col gap-3">
+                      {col.items.map((it, idx) => (
+                        <div
+                          key={`${it.title}-${it.provider}-${idx}`}
+                          className="flex gap-3 rounded-[var(--cds-border-radius-100)] border border-[var(--cds-color-grey-100)] bg-[var(--cds-color-grey-25)] p-3"
+                        >
+                          <img
+                            src={it.image}
+                            alt=""
+                            className="h-14 w-14 shrink-0 rounded-[var(--cds-border-radius-50)] object-cover"
+                          />
+                          <div className="min-w-0 flex-1">
+                            <p className="cds-body-secondary text-[var(--cds-color-grey-600)]">{it.provider}</p>
+                            <p className="cds-subtitle-sm mt-0.5 text-[var(--cds-color-grey-975)]">{it.title}</p>
+                            <p className="cds-body-tertiary mt-1 text-[var(--cds-color-grey-600)]">
+                              {it.timeCommitment} · {it.type} · ★ {it.rating}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ))}
 
           {activeTab === 'completed' && (
             <EmptyTab icon="check_circle" title="Completed courses" body="Courses you finish will appear here along with your certificates." />
@@ -655,14 +696,14 @@ export const MyLearning: React.FC<MyLearningProps> = ({
             <EmptyTab icon="workspace_premium" title="Certificates & Badges" body="Your earned certificates and badges will appear here." />
           )}
 
-          {activeTab === 'career-tools' && <SkillGapTool defaultExpanded />}
         </div>
 
-        {/* Right sidebar */}
-        <aside className="hidden md:flex w-[400px] shrink-0 flex-col gap-4">
-          <LearningPlanCalendar />
-          <CohortLeaderboard selectedCohort={selectedCohort} onSelectCohort={setSelectedCohort} />
-        </aside>
+        {showRightSidebar ? (
+          <aside className="hidden md:flex w-[400px] shrink-0 flex-col gap-4">
+            <LearningPlanCalendar />
+            <CohortLeaderboard selectedCohort={selectedCohort} onSelectCohort={setSelectedCohort} />
+          </aside>
+        ) : null}
       </div>
     </div>
   );
@@ -670,12 +711,12 @@ export const MyLearning: React.FC<MyLearningProps> = ({
 
 function EmptyTab({ icon, title, body }: { icon: string; title: string; body: string }) {
   return (
-    <div className="rounded-[var(--cds-border-radius-200)] border border-[var(--cds-color-grey-100)] bg-[var(--cds-color-white)] p-10 text-center">
+    <div className="w-full rounded-[var(--cds-border-radius-200)] border border-[var(--cds-color-grey-100)] bg-[var(--cds-color-white)] p-10 text-center">
       <span className="material-symbols-rounded text-[var(--cds-color-grey-300)] mb-3 inline-block" style={{ fontSize: 48 }}>
         {icon}
       </span>
       <h3 className="cds-subtitle-md text-[var(--cds-color-grey-975)] mb-2">{title}</h3>
-      <p className="cds-body-secondary text-[var(--cds-color-grey-600)] max-w-md mx-auto">{body}</p>
+      <p className="cds-body-secondary w-full text-[var(--cds-color-grey-600)]">{body}</p>
     </div>
   );
 }

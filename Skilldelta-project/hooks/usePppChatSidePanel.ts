@@ -12,17 +12,74 @@ import type {
 } from "@/lib/types";
 import type { LearningPlan, PlanCourse } from "@/lib/plan-types";
 import { conversationStateSchema } from "@/lib/prompts/schemas";
+import { CHAT_UI_RESUME_AND_COURSES } from "@/components/chat/resume-followup-blocks";
+import type { JobContextForSkillGap } from "@/contexts/saved-skill-gap-courses-context";
+
+export type UsePppChatSidePanelOptions = {
+  /** Called when a LinkedIn job link is processed so saves can group under role + company. */
+  onLinkedInJobContext?: (ctx: JobContextForSkillGap) => void;
+};
 
 const FIND_GAPS_REPLY_DELAY_MS = 1200;
 const LINKEDIN_JOB_REPLY_DELAY_MS = 2500;
 const RESUME_AFTER_LINKEDIN_DELAY_MS = 3000;
+/** Delay before the resume follow-up UI after upload (job-link flow). */
+const RESUME_AFTER_LINKEDIN_UPLOAD_DELAY_MS = 4000;
 const RESUME_TEXT_MAX_CHARS = 120_000;
-
-const RESUME_AFTER_LINKEDIN_REPLY =
-  "That's an impressive resume. I see 4 more relevant skill requirements outlined here, so we just have 3 to focus on: business intelligence breadth (Power BI / Looker), product analytics (funnels, cohorts, retention), and cloud data warehousing (BigQuery / Snowflake).";
 
 const LINKEDIN_JOB_URL_RE =
   /https?:\/\/(www\.)?linkedin\.com\/jobs?\/view\/[^\s)\]}>'"]+/i;
+
+const LINKEDIN_PROFILE_URL_RE =
+  /https?:\/\/(www\.)?linkedin\.com\/in\/[^\s)\]}>'"]+/i;
+
+function buildLinkedInProfileAfterJobReply(displayName: string): string {
+  return `**${displayName}**, I found evidence of 3 more skills based on your profile, which brings your gaps to 3 areas: Business intelligence breadth (Power BI / Looker), Product analytics (funnels, cohorts, retention), and Cloud data warehousing (BigQuery / Snowflake).
+
+To apply quick, here are a few project or course recommendations you can take in less than a week to strengthen your profile:`;
+}
+
+const CONTINUE_WITHOUT_RESUME_REPLY = `Here are the **7 skill gaps** to focus on from your Coursera activity:
+
+1. **Business intelligence breadth** (Power BI / Looker)
+2. **Product analytics** (funnels, cohorts, retention)
+3. **Cloud data warehousing** (BigQuery / Snowflake)
+4. **Business KPI frameworks & OKRs**
+5. **Analytics engineering** (dbt, pipelines)
+6. **Causal inference basics**
+7. **Data privacy & ethics** (GDPR / CCPA)
+
+Since time is of the essence, I recommend prioritizing the **first three**: business intelligence breadth, product analytics, and cloud data warehousing.`;
+
+/** User declines to upload resume/LinkedIn and wants to proceed with Coursera-only gaps. */
+function wantsToContinueWithoutResume(text: string): boolean {
+  const t = text.trim().toLowerCase();
+  if (t.length > 280) return false;
+  if (/\bhttps?:\/\//i.test(t)) return false;
+  const patterns: RegExp[] = [
+    /let'?s\s+focus\s+on/,
+    /let'?s\s+continue/,
+    /^lets\s+continue/,
+    /^continue\.?$/,
+    /focus\s+on\s+(these\s+)?skills/,
+    /let'?s\s+go\b/,
+    /let'?s\s+move\s+forward/,
+    /^ok(ay)?\.?$/,
+    /^yes\.?$/,
+    /^yep\.?$/,
+    /^sure\.?$/,
+    /^sounds?\s+good/,
+    /^that\s+works/,
+    /no\s+(need\s+for\s+)?(a\s+)?(resume|upload|profile)/,
+    /don'?t\s+need\s+(to\s+)?upload/,
+    /skip\s+(the\s+)?(upload|resume)/,
+    /proceed\s+without/,
+    /stick\s+with\s+what\s+we\s+have/,
+    /i'?m\s+good\s+(without|with)/,
+    /^no\s+thanks?\.?$/,
+  ];
+  return patterns.some((p) => p.test(t));
+}
 
 const metadataJsonRegex = /```json\s*(\{[\s\S]*?\})\s*```\s*$/;
 
@@ -45,6 +102,33 @@ function extractLinkedInJobUrl(text: string): string | null {
   return m[0].replace(/[.,;]+$/u, "");
 }
 
+function extractLinkedInProfileUrl(text: string): string | null {
+  const m = text.match(LINKEDIN_PROFILE_URL_RE);
+  if (!m) return null;
+  return m[0].replace(/[.,;]+$/u, "");
+}
+
+/** Derive a display name from a LinkedIn /in/ slug (e.g. fred-cosgrove-123 → Fred Cosgrove). */
+function displayNameFromLinkedInProfileUrl(url: string): string {
+  try {
+    const u = new URL(url);
+    const segments = u.pathname.split("/").filter(Boolean);
+    const inIdx = segments.indexOf("in");
+    const slug = inIdx >= 0 ? segments[inIdx + 1] : null;
+    if (!slug) return "there";
+    const parts = decodeURIComponent(slug)
+      .split("-")
+      .filter(Boolean);
+    while (parts.length > 1 && /^\d+$/.test(parts[parts.length - 1] ?? "")) {
+      parts.pop();
+    }
+    if (parts.length === 0) return "there";
+    return parts.map((w) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(" ");
+  } catch {
+    return "there";
+  }
+}
+
 function parseRoleCompanyFromTitle(titleGuess: string | null): { role: string; company: string } | null {
   if (!titleGuess?.trim()) return null;
   const cleaned = titleGuess.replace(/\s*\|\s*LinkedIn\s*$/i, "").trim();
@@ -57,19 +141,6 @@ function parseRoleCompanyFromTitle(titleGuess: string | null): { role: string; c
     return { role: at[1].trim(), company: at[2].trim() };
   }
   return null;
-}
-
-function postedHintFromJobText(text: string): string {
-  const m = text.match(/(\d+)\s+(day|days|week|weeks|month|months|hour|hours)\s+ago/i);
-  if (!m) return "It was posted recently, so let's move fast!";
-  const n = parseInt(m[1], 10);
-  const u = m[2].toLowerCase();
-  if (u.startsWith("hour")) return "It was just posted, so let's move fast!";
-  if (u.startsWith("day") && n <= 7) return "It was posted under a week ago, so let's move fast!";
-  if (u.startsWith("week") && n === 1) return "It was posted about a week ago, so let's move fast!";
-  if (u.startsWith("day")) return `It was posted ${n} days ago, so let's move fast!`;
-  if (u.startsWith("week")) return `It was posted ${n} weeks ago, so let's move fast!`;
-  return "It was posted recently, so let's move fast!";
 }
 
 async function fetchLinkedInJobPreview(
@@ -93,7 +164,10 @@ async function fetchLinkedInJobPreview(
   }
 }
 
-export function usePppChatSidePanel() {
+export function usePppChatSidePanel(options?: UsePppChatSidePanelOptions) {
+  const onLinkedInJobContextRef = useRef(options?.onLinkedInJobContext);
+  onLinkedInJobContextRef.current = options?.onLinkedInJobContext;
+
   const [phase, setPhaseState] = useState<AppPhase>("chatting");
   const phaseRef = useRef<AppPhase>("chatting");
   const setPhase = useCallback((next: AppPhase | ((prev: AppPhase) => AppPhase)) => {
@@ -362,15 +436,16 @@ export function usePppChatSidePanel() {
           const parsed = preview?.titleGuess
             ? parseRoleCompanyFromTitle(preview.titleGuess)
             : null;
-          const posted =
-            preview?.text && preview.text.length >= 50
-              ? postedHintFromJobText(preview.text)
-              : "It was posted recently, so let's move fast!";
+          onLinkedInJobContextRef.current?.(
+            parsed
+              ? { role: parsed.role, company: parsed.company }
+              : { role: "", company: "" },
+          );
           const firstLine = parsed
-            ? `Got it, it looks like you're interested in the ${parsed.role} role at ${parsed.company}. ${posted}`
-            : `Got it, it looks like you're interested in this job posting. ${posted}`;
+            ? `Got it, it looks like you're interested in the ${parsed.role} role at ${parsed.company}. That's a recent job posting—let's move fast!`
+            : `That's a recent job posting—let's move fast!`;
           const secondBlock =
-            "Based on your Coursera activity, you have **7 key skill gaps** to focus on. We can focus on those, or if you have a more representative resume or LinkedIn profile I can use, upload that now.";
+            "Based on your Coursera activity, you have **7 key skill gaps** to focus on. We can focus on those, or if you have a more representative **resume or LinkedIn profile** I can use, upload that now.";
           const reply = `${firstLine}\n\n${secondBlock}`;
           setMessages((prev) => [
             ...prev,
@@ -381,6 +456,68 @@ export function usePppChatSidePanel() {
             },
           ]);
           awaitingResumeAfterLinkedInRef.current = true;
+          setPendingLocalReply(false);
+        })();
+        return;
+      }
+
+      const linkedInProfileUrl = extractLinkedInProfileUrl(text);
+      if (awaitingResumeAfterLinkedInRef.current && linkedInProfileUrl) {
+        if (localReplyTimeoutRef.current) {
+          clearTimeout(localReplyTimeoutRef.current);
+          localReplyTimeoutRef.current = null;
+        }
+        awaitingResumeAfterLinkedInRef.current = false;
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: generateId(),
+            role: "user",
+            parts: [{ type: "text", text }],
+          },
+        ]);
+        setPendingLocalReply(true);
+        const displayName = displayNameFromLinkedInProfileUrl(linkedInProfileUrl);
+        void (async () => {
+          await new Promise((r) => setTimeout(r, RESUME_AFTER_LINKEDIN_DELAY_MS));
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: generateId(),
+              role: "assistant",
+              parts: [{ type: "text", text: buildLinkedInProfileAfterJobReply(displayName) }],
+            },
+          ]);
+          setPendingLocalReply(false);
+        })();
+        return;
+      }
+
+      if (awaitingResumeAfterLinkedInRef.current && wantsToContinueWithoutResume(text)) {
+        if (localReplyTimeoutRef.current) {
+          clearTimeout(localReplyTimeoutRef.current);
+          localReplyTimeoutRef.current = null;
+        }
+        awaitingResumeAfterLinkedInRef.current = false;
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: generateId(),
+            role: "user",
+            parts: [{ type: "text", text }],
+          },
+        ]);
+        setPendingLocalReply(true);
+        void (async () => {
+          await new Promise((r) => setTimeout(r, RESUME_AFTER_LINKEDIN_DELAY_MS));
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: generateId(),
+              role: "assistant",
+              parts: [{ type: "text", text: CONTINUE_WITHOUT_RESUME_REPLY }],
+            },
+          ]);
           setPendingLocalReply(false);
         })();
         return;
@@ -459,13 +596,13 @@ export function usePppChatSidePanel() {
         ]);
         setPendingLocalReply(true);
         void (async () => {
-          await new Promise((r) => setTimeout(r, RESUME_AFTER_LINKEDIN_DELAY_MS));
+          await new Promise((r) => setTimeout(r, RESUME_AFTER_LINKEDIN_UPLOAD_DELAY_MS));
           setMessages((prev) => [
             ...prev,
             {
               id: generateId(),
               role: "assistant",
-              parts: [{ type: "text", text: RESUME_AFTER_LINKEDIN_REPLY }],
+              parts: [{ type: "text", text: CHAT_UI_RESUME_AND_COURSES }],
             },
           ]);
           setPendingLocalReply(false);

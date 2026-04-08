@@ -31,6 +31,7 @@ import {
 } from './skills';
 import { Lesson, CourseData, Status, ContentType } from './types';
 import { CoachChatAside } from './components/CoachChatAside';
+import { SavedSkillGapCoursesProvider } from './contexts/saved-skill-gap-courses-context';
 
 type View = 'learning' | 'dashboard' | 'home' | 'assessment' | 'assessment-result' | 'badge-achievement';
 
@@ -51,9 +52,6 @@ const App: React.FC = () => {
   
   // View State - Default to 'home' for logged in homepage
   const [currentView, setCurrentView] = useState<View>('home');
-  /** Bumped from Header "Plan for specific job" to scroll to and expand Skill Gap on Home. */
-  const [skillGapExpandRequestToken, setSkillGapExpandRequestToken] = useState(0);
-  
   // Assessment results - tracks sub-skill scores from the assessment
   // These values match what's shown in AssessmentResult: 10/10 correct for first skill, 
   // 3/10, 7/10, 6/10 correct for the others (based on mistakes: 7, 3, 4)
@@ -698,7 +696,6 @@ const App: React.FC = () => {
 
   const handlePlanForSpecificJob = () => {
     setCurrentView('home');
-    setSkillGapExpandRequestToken((n) => n + 1);
   };
   
   const navigateToAssessment = () => {
@@ -730,6 +727,7 @@ const App: React.FC = () => {
   const isAssessmentResultView = currentView === 'assessment-result' || currentView === 'badge-achievement';
 
   return (
+    <SavedSkillGapCoursesProvider>
     <div className="flex flex-col h-screen bg-[var(--cds-color-grey-25)] text-[var(--cds-color-grey-975)]">
       <Header 
         currentSP={dailySP} // Use daily SP for the header goal
@@ -771,7 +769,6 @@ const App: React.FC = () => {
             onTakeSkillAssessment={navigateToAssessment}
             dailyTimeGoal={dailyTimeGoal}
             introModalClosed={true}
-            skillGapExpandRequestToken={skillGapExpandRequestToken}
           />
         )}
 
@@ -971,6 +968,7 @@ const App: React.FC = () => {
         </aside>
       </div>
     </div>
+    </SavedSkillGapCoursesProvider>
   );
 };
 

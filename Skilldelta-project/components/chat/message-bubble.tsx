@@ -1,5 +1,9 @@
 
 import type { ChatUIMessage } from "@/lib/types";
+import {
+  CHAT_UI_RESUME_AND_COURSES,
+  ResumeAndCoursesFollowupBlock,
+} from "@/components/chat/resume-followup-blocks";
 import { Paperclip } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 
@@ -153,6 +157,16 @@ export function MessageBubble({ message, activePillQuestion }: { message: ChatUI
 
   if (!lastTextPart) return null;
 
+  const markerText = lastTextPart.text.trim();
+  if (markerText === CHAT_UI_RESUME_AND_COURSES) {
+    return (
+      <div className="text-[#0f1114]">
+        <ResumeAndCoursesFollowupBlock />
+        <MessageActions />
+      </div>
+    );
+  }
+
   // When pills are active, strip the trailing question sentence from the message
   // to avoid duplication with the choice card. Keep the acknowledgment portion.
   // If nothing remains, hide the bubble entirely.
@@ -171,7 +185,7 @@ export function MessageBubble({ message, activePillQuestion }: { message: ChatUI
   return (
     <div className="text-[#0f1114]">
       <div
-        className="prose max-w-none text-[#0f1114] prose-headings:text-[#0f1114] prose-strong:text-[#0f1114] prose-p:text-[#0f1114] prose-li:text-[#0f1114] prose-p:leading-relaxed prose-li:leading-relaxed prose-ul:my-2 prose-p:my-2 [&_p+p]:mt-4 [&_strong]:rounded [&_strong]:bg-[#fef3c7] [&_strong]:px-1.5 [&_strong]:py-0.5 [&_strong]:font-semibold"
+        className="prose max-w-none text-[#0f1114] prose-headings:text-[#0f1114] prose-strong:text-[#0f1114] prose-p:text-[#0f1114] prose-li:text-[#0f1114] prose-p:leading-relaxed prose-li:leading-relaxed prose-ul:my-2 prose-p:my-2 [&_p+p]:mt-4 [&_strong]:font-semibold"
       >
         <ReactMarkdown>{displayText}</ReactMarkdown>
       </div>

@@ -1,8 +1,12 @@
 import { ChatSidePanel } from "@/components/lihp/chat-side-panel";
+import { useSavedSkillGapCourses } from "@/contexts/saved-skill-gap-courses-context";
 import { usePppChatSidePanel } from "@/hooks/usePppChatSidePanel";
 
 export function CoachChatAside({ onClose }: { onClose: () => void }) {
-  const chat = usePppChatSidePanel();
+  const { setJobContextForSkillGapSaves } = useSavedSkillGapCourses();
+  const chat = usePppChatSidePanel({
+    onLinkedInJobContext: setJobContextForSkillGapSaves,
+  });
 
   return (
     <ChatSidePanel

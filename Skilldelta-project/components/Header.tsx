@@ -15,7 +15,7 @@ interface HeaderProps {
   onLogoClick?: () => void;
   isHomeView?: boolean;
   onNavigate?: (view: any) => void;
-  /** Opens Home and expands the Skill Gap tool (career plan popover). */
+  /** Opens Home (career plan popover). */
   onPlanForSpecificJob?: () => void;
   careerTitle?: string;
   /** Learning coach side panel is open (nav sparkle shows active state). */

@@ -206,13 +206,7 @@ export function ChatInput({
             aria-hidden
           >
             <FileUp className="h-8 w-8 shrink-0 text-[#0056d2]" strokeWidth={1.75} />
-            <div className="flex flex-col gap-1.5">
-              <p className="text-sm font-medium text-[#0f1114]">Drop files here</p>
-              <ul className="list-none space-y-0.5 text-xs leading-snug text-[#5b6780]">
-                <li>PDF — .pdf</li>
-                <li>Plain text — .txt</li>
-              </ul>
-            </div>
+            <p className="text-sm font-medium text-[#0f1114]">Drag and drop files here</p>
           </div>
         )}
 
