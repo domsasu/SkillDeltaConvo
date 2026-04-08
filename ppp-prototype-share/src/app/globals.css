@@ -1,0 +1,90 @@
+@import "tailwindcss";
+
+/* Hide scrollbar for horizontal scroll containers */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-source-sans);
+}
+
+/* Force light mode — prototype is designed for light theme only */
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-size: 16px;
+}
+
+/* Bump base text sizes globally */
+.text-sm {
+  font-size: 0.9375rem; /* 15px instead of 14px */
+  line-height: 1.375rem;
+}
+.text-xs {
+  font-size: 0.8125rem; /* 13px instead of 12px */
+  line-height: 1.125rem;
+}
+.text-base {
+  font-size: 1.0625rem; /* 17px instead of 16px */
+  line-height: 1.5rem;
+}
+
+/* Auto-scrolling prompt pill animations — GPU accelerated via translate3d */
+@keyframes scroll-left {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+@keyframes scroll-right {
+  from {
+    transform: translate3d(-50%, 0, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes fadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulseOpacity {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+
+@keyframes shimmer {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transform: none !important;
+  }
+}

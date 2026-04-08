@@ -1,0 +1,213 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - banner [ref=e4]:
+      - generic [ref=e5]:
+        - img "Coursera" [ref=e6]
+        - navigation [ref=e8]:
+          - button "Explore" [ref=e9]:
+            - text: Explore
+            - img [ref=e10]
+          - generic [ref=e12] [cursor=pointer]: Degrees
+        - generic [ref=e13]:
+          - generic [ref=e14]: I want to learn...
+          - button [ref=e15]:
+            - img [ref=e16]
+      - generic [ref=e18]:
+        - img [ref=e19]
+        - button [ref=e22]:
+          - img [ref=e23]
+        - button [ref=e27]:
+          - img [ref=e28]
+        - generic [ref=e30]: L
+    - generic [ref=e31]:
+      - main [ref=e32]:
+        - generic [ref=e35]:
+          - generic [ref=e37]:
+            - img [ref=e38]
+            - generic [ref=e42]:
+              - paragraph [ref=e43]: Your Data Analyst learning plan
+              - generic [ref=e44]:
+                - generic [ref=e45]:
+                  - img [ref=e46]
+                  - text: Data Analyst
+                - generic [ref=e48]: •
+                - generic [ref=e49]:
+                  - img [ref=e50]
+                  - text: SQL, Python, Data Visualization
+                - generic [ref=e52]: •
+                - generic [ref=e53]:
+                  - img [ref=e54]
+                  - text: 3 months at 6 hours/week
+          - generic [ref=e56]:
+            - heading "Trending now" [level=2] [ref=e57]
+            - generic [ref=e58]:
+              - generic [ref=e59]:
+                - generic [ref=e60]:
+                  - heading "Most popular" [level=3] [ref=e61]
+                  - img [ref=e62]
+                - generic [ref=e64]:
+                  - generic [ref=e65]:
+                    - img "Google AI Essentials" [ref=e66]
+                    - generic [ref=e67]:
+                      - generic [ref=e68]:
+                        - img "Google" [ref=e69]
+                        - generic [ref=e70]: Google
+                      - paragraph [ref=e71]: Google AI Essentials
+                      - generic [ref=e72]:
+                        - generic [ref=e73]: Specialization
+                        - generic [ref=e74]: ·
+                        - generic [ref=e75]:
+                          - img [ref=e76]
+                          - text: "4.9"
+                  - generic [ref=e78]:
+                    - img "Agentic AI and AI Agents" [ref=e79]
+                    - generic [ref=e80]:
+                      - generic [ref=e81]:
+                        - img "Microsoft" [ref=e82]
+                        - generic [ref=e83]: Microsoft
+                      - paragraph [ref=e84]: Agentic AI and AI Agents
+                      - generic [ref=e85]:
+                        - generic [ref=e86]: Course
+                        - generic [ref=e87]: ·
+                        - generic [ref=e88]:
+                          - img [ref=e89]
+                          - text: "4.9"
+                  - generic [ref=e91]:
+                    - img "Agentic AI and AI Agents" [ref=e92]
+                    - generic [ref=e93]:
+                      - generic [ref=e94]:
+                        - img "Meta" [ref=e95]
+                        - generic [ref=e96]: Meta
+                      - paragraph [ref=e97]: Agentic AI and AI Agents
+                      - generic [ref=e98]:
+                        - generic [ref=e99]: Course
+                        - generic [ref=e100]: ·
+                        - generic [ref=e101]:
+                          - img [ref=e102]
+                          - text: "4.9"
+              - generic [ref=e104]:
+                - generic [ref=e105]:
+                  - heading "Weekly spotlight" [level=3] [ref=e106]
+                  - img [ref=e107]
+                - generic [ref=e109]:
+                  - generic [ref=e110]:
+                    - 'img "Successful Negotiation: Essential" [ref=e111]'
+                    - generic [ref=e112]:
+                      - generic [ref=e113]:
+                        - img "Google" [ref=e114]
+                        - generic [ref=e115]: Google
+                      - paragraph [ref=e116]: "Successful Negotiation: Essential"
+                      - generic [ref=e117]:
+                        - generic [ref=e118]: Specialization
+                        - generic [ref=e119]: ·
+                        - generic [ref=e120]:
+                          - img [ref=e121]
+                          - text: "4.9"
+                  - generic [ref=e123]:
+                    - 'img "Successful Negotiation: Essential" [ref=e124]'
+                    - generic [ref=e125]:
+                      - generic [ref=e126]:
+                        - img "IBM" [ref=e127]
+                        - generic [ref=e128]: IBM
+                      - paragraph [ref=e129]: "Successful Negotiation: Essential"
+                      - generic [ref=e130]:
+                        - generic [ref=e131]: Professional Certificate
+                        - generic [ref=e132]: ·
+                        - generic [ref=e133]:
+                          - img [ref=e134]
+                          - text: "4.9"
+                  - generic [ref=e136]:
+                    - 'img "Successful Negotiation: Essential" [ref=e137]'
+                    - generic [ref=e138]:
+                      - generic [ref=e139]:
+                        - img "Google" [ref=e140]
+                        - generic [ref=e141]: Google
+                      - paragraph [ref=e142]: "Successful Negotiation: Essential"
+                      - generic [ref=e143]:
+                        - generic [ref=e144]: Professional Certificate
+                        - generic [ref=e145]: ·
+                        - generic [ref=e146]:
+                          - img [ref=e147]
+                          - text: "4.9"
+          - generic [ref=e149]:
+            - heading "In-demand skills" [level=2] [ref=e150]
+            - generic [ref=e151]:
+              - button "Natural Language" [ref=e152]
+              - button "Prompt Engineering" [ref=e153]
+              - button "Python" [ref=e154]
+              - button "Generative AI" [ref=e155]
+              - button "Computer Vision" [ref=e156]
+              - button "SQL" [ref=e157]
+              - button "Responsible AI" [ref=e158]
+              - button "Prompt Engineering" [ref=e159]
+              - button [ref=e160]:
+                - img [ref=e161]
+          - generic [ref=e163]:
+            - heading "Collection Title" [level=2] [ref=e164]
+            - generic [ref=e165]:
+              - generic [ref=e166] [cursor=pointer]:
+                - img "English for Career Development" [ref=e168]
+                - generic [ref=e169]:
+                  - img "University of Pennsylvania" [ref=e170]
+                  - generic [ref=e171]: University of Pennsylvania
+                - paragraph [ref=e172]: English for Career Development
+              - generic [ref=e173] [cursor=pointer]:
+                - img "English for Career Development" [ref=e175]
+                - generic [ref=e176]:
+                  - img "University of Pennsylvania" [ref=e177]
+                  - generic [ref=e178]: University of Pennsylvania
+                - paragraph [ref=e179]: English for Career Development
+              - generic [ref=e180] [cursor=pointer]:
+                - img "English for Career Development" [ref=e182]
+                - generic [ref=e183]:
+                  - img "University of Pennsylvania" [ref=e184]
+                  - generic [ref=e185]: University of Pennsylvania
+                - paragraph [ref=e186]: English for Career Development
+      - complementary [ref=e187]:
+        - generic [ref=e188]:
+          - generic [ref=e189]:
+            - img [ref=e190]
+            - generic [ref=e193]:
+              - button [ref=e194]:
+                - img [ref=e195]
+              - button [ref=e198]:
+                - img [ref=e199]
+          - generic [ref=e202]:
+            - generic [ref=e204]:
+              - generic [ref=e207]: I want to become a data analyst. I know basic Excel but I'm new to programming. I can study 6 hours per week for 3 months. I want to learn SQL, Python, and data visualization.
+              - generic [ref=e209]:
+                - paragraph [ref=e211]: You want to become a data analyst with skills in SQL, Python, and data visualization in 3 months at 6 hours per week, knowing basic Excel and new to programming, so let's clarify your current programming knowledge level and background—do you have any experience with Python or just starting?
+                - generic [ref=e212]:
+                  - button [ref=e213]:
+                    - img [ref=e214]
+                  - button [ref=e216]:
+                    - img [ref=e217]
+                  - button [ref=e219]:
+                    - img [ref=e220]
+                  - button [ref=e223]:
+                    - img [ref=e224]
+                  - button [ref=e227]:
+                    - img [ref=e228]
+            - generic [ref=e235]:
+              - paragraph [ref=e237]: What is your current level with Python?
+              - generic [ref=e239]:
+                - button "1 No experience, just starting" [ref=e240] [cursor=pointer]:
+                  - generic [ref=e241]: "1"
+                  - generic [ref=e242]: No experience, just starting
+                - button "2 Some basic knowledge" [ref=e243] [cursor=pointer]:
+                  - generic [ref=e244]: "2"
+                  - generic [ref=e245]: Some basic knowledge
+                - button "3 Comfortable with basics" [ref=e246] [cursor=pointer]:
+                  - generic [ref=e247]: "3"
+                  - generic [ref=e248]: Comfortable with basics
+              - generic [ref=e250]:
+                - img [ref=e252]
+                - textbox "Other" [ref=e254]
+              - button "Skip For Now" [ref=e256] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=e262] [cursor=pointer]:
+    - img [ref=e263]
+  - alert [ref=e266]
+```

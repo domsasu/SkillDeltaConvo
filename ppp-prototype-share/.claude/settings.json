@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(/Users/dajiboye/base/coursera/web/**)",
+      "Glob(/Users/dajiboye/base/coursera/web/**)",
+      "Grep(/Users/dajiboye/base/coursera/web/**)",
+      "Read(/Users/dajiboye/base/coursera/PPP Figma/**)",
+      "Glob(/Users/dajiboye/base/coursera/PPP Figma/**)",
+      "Grep(/Users/dajiboye/base/coursera/PPP Figma/**)",
+      "Read(/Users/dajiboye/base/coursera/service-definitions/**)",
+      "Glob(/Users/dajiboye/base/coursera/service-definitions/**)",
+      "Grep(/Users/dajiboye/base/coursera/service-definitions/**)"
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "name": "left-rail-goal_daily_goal_tracker_mobile",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@ai-sdk/react": "^3.0.155",
+    "@google/genai": "^1.30.0",
+    "@tailwindcss/typography": "^0.5.19",
+    "ai": "^6.0.153",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.38.0",
+    "lucide-react": "^0.554.0",
+    "pdfjs-dist": "^4.10.38",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "react-markdown": "^10.1.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.2.2",
+    "@types/node": "^22.14.0",
+    "@vercel/node": "^3.2.29",
+    "@vitejs/plugin-react": "^5.0.0",
+    "agentation": "^3.0.2",
+    "tailwindcss": "^4.2.2",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}

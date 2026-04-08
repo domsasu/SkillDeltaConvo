@@ -1,0 +1,12 @@
+{
+  "name": "skill-delta-conversational",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -n api,app -c blue,green \"npm run dev:api\" \"npm run dev:app\"",
+    "dev:api": "npm run dev --prefix ppp-prototype-share -- -p 3001",
+    "dev:app": "npm run dev --prefix Skilldelta-project"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
