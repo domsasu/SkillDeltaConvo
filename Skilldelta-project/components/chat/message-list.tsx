@@ -1,5 +1,5 @@
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { ChatStatus } from "ai";
 import type { AppPhase, ChatUIMessage } from "@/lib/types";
 import { MessageBubble } from "@/components/chat/message-bubble";
@@ -126,12 +126,12 @@ export function MessageList({
     return () => observer.disconnect();
   }, []);
 
-  // Always scroll to bottom when new messages arrive or status changes
+  // Pin thread to bottom (instant) — avoids smooth-scroll jank with typing indicators and inline widgets
   const lastMsgId = messages.length > 0 ? messages[messages.length - 1].id : "";
-  useEffect(() => {
-    if (sentinelRef.current) {
-      sentinelRef.current.scrollIntoView({ behavior: "smooth" });
-    }
+  useLayoutEffect(() => {
+    const root = scrollContainerRef.current;
+    if (!root) return;
+    root.scrollTop = root.scrollHeight;
   }, [messages.length, lastMsgId, status, pendingLocalReply]);
 
   const showStarterPrompts =

@@ -1,12 +1,32 @@
+import { useEffect, useRef } from "react";
 import { ChatSidePanel } from "@/components/lihp/chat-side-panel";
 import { useSavedSkillGapCourses } from "@/contexts/saved-skill-gap-courses-context";
 import { usePppChatSidePanel } from "@/hooks/usePppChatSidePanel";
 
-export function CoachChatAside({ onClose }: { onClose: () => void }) {
+export type CoachLaunchRequest = { id: number; text: string };
+
+export function CoachChatAside({
+  onClose,
+  launchRequest,
+  onConsumedLaunchRequest,
+}: {
+  onClose: () => void;
+  launchRequest?: CoachLaunchRequest | null;
+  onConsumedLaunchRequest?: () => void;
+}) {
   const { setJobContextForSkillGapSaves } = useSavedSkillGapCourses();
   const chat = usePppChatSidePanel({
     onLinkedInJobContext: setJobContextForSkillGapSaves,
   });
+
+  const processedLaunchIdRef = useRef<number | null>(null);
+  useEffect(() => {
+    if (!launchRequest || !onConsumedLaunchRequest) return;
+    if (processedLaunchIdRef.current === launchRequest.id) return;
+    processedLaunchIdRef.current = launchRequest.id;
+    chat.onSend(launchRequest.text);
+    onConsumedLaunchRequest();
+  }, [launchRequest, chat.onSend, onConsumedLaunchRequest]);
 
   return (
     <ChatSidePanel

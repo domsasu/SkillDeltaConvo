@@ -122,6 +122,7 @@ export function ResumeAndCoursesFollowupBlock() {
   const [activeIdx, setActiveIdx] = useState(0);
   const [cardReady, setCardReady] = useState(false);
   const threadEndRef = useRef<HTMLDivElement>(null);
+  const didInitialCourseScrollRef = useRef(false);
 
   useEffect(() => {
     const t = window.setTimeout(() => setCardReady(true), COURSE_CARD_REVEAL_DELAY_MS);
@@ -131,23 +132,29 @@ export function ResumeAndCoursesFollowupBlock() {
   useEffect(() => {
     if (!cardReady) return;
     const id = window.setTimeout(() => {
-      threadEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-    }, 80);
+      const firstReveal = !didInitialCourseScrollRef.current;
+      didInitialCourseScrollRef.current = true;
+      threadEndRef.current?.scrollIntoView({
+        behavior: firstReveal ? "auto" : "smooth",
+        block: "end",
+      });
+    }, 0);
     return () => window.clearTimeout(id);
-  }, [cardReady]);
+  }, [cardReady, activeIdx]);
 
   const activeSkill = skills[activeIdx] ?? skills[0]!;
   const courses = getCourseraShortCoursesForPrioritySkill(activeSkill);
 
   return (
-    <div className="w-full min-w-0 text-[#0f1114]">
-      <p className="text-sm leading-relaxed">
-        That&apos;s a solid resume, I now see more relevant skills.
-      </p>
+    <div className="w-full min-w-0 text-base leading-relaxed text-[#0f1114]">
+      <p>That&apos;s a solid resume, I now see more relevant skills.</p>
 
-      <p className="mt-4 text-sm leading-relaxed">
+      <p className="mt-4">
         Here are courses or projects that take under a week to boost your profile based on the{" "}
-        <strong className="font-semibold text-[#0f1114]">remaining 3 skills</strong>:
+        <strong className="font-semibold text-[#0f1114]">
+          remaining 3 skills required for this role
+        </strong>
+        :
       </p>
 
       {!cardReady ? (
@@ -175,7 +182,7 @@ export function ResumeAndCoursesFollowupBlock() {
           </div>
 
           <div className="mt-3 rounded-2xl border border-[#dae1ed] bg-[#f4f6fa] p-3">
-            <h3 className="mb-3 text-sm font-semibold leading-snug text-[#0f1114]">
+            <h3 className="mb-3 text-base font-semibold leading-snug text-[#0f1114]">
               {activeSkill}
             </h3>
             <div className="flex flex-col gap-2">

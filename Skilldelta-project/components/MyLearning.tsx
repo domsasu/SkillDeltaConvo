@@ -1,5 +1,7 @@
 
 import React, { useState } from 'react';
+import { SUGGESTION_FIND_GAPS_LABEL } from '@/components/entry/suggestion-buttons';
+import { SparkleIcon } from '@/components/shared/sparkle-icon';
 import { useSavedSkillGapCourses } from '@/contexts/saved-skill-gap-courses-context';
 import { CourseData, Lesson, Status } from '../types';
 import { courseCompletionDisplayPercent } from '../skills';
@@ -12,14 +14,17 @@ interface MyLearningProps {
   dailyGoalCompletions: number;
   onTakeSkillAssessment?: () => void;
   assessmentResults?: Record<string, number> | null;
+  /** Opens the learning coach and starts the “Find gaps for this role” thread. */
+  onOpenCoachFindGaps?: () => void;
 }
 
-type TabId = 'in-progress' | 'saved' | 'completed' | 'skills';
+type TabId = 'in-progress' | 'saved' | 'completed' | 'career-tools' | 'skills';
 
 const TABS: { id: TabId; label: string; newBadge?: boolean }[] = [
   { id: 'in-progress', label: 'In progress' },
   { id: 'completed', label: 'Completed' },
   { id: 'saved', label: 'Saved' },
+  { id: 'career-tools', label: 'Career tools', newBadge: true },
   { id: 'skills', label: 'Certificates & Badges' },
 ];
 
@@ -575,19 +580,58 @@ function SecondCourseCard({
 /*  Main Component                                                    */
 /* ------------------------------------------------------------------ */
 
+function CareerToolsCoachWidget({ onCtaClick }: { onCtaClick: () => void }) {
+  return (
+    <div className="w-full overflow-hidden rounded-[var(--cds-border-radius-200)] border border-[var(--cds-color-grey-100)] bg-[var(--cds-color-white)] shadow-sm">
+      <div className="relative min-h-[220px] md:min-h-[260px]">
+        <img
+          src="/career-tools-hero.png"
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover object-center"
+        />
+        <div
+          className="absolute inset-0 bg-gradient-to-t from-[#1a1d21]/90 via-[#1a1d21]/45 to-[#1a1d21]/25"
+          aria-hidden
+        />
+        <div className="relative flex min-h-[220px] flex-col justify-end p-6 md:min-h-[260px] md:p-8">
+          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-white/80">Career tools</p>
+          <h2 className="cds-title-xs mb-2 text-[var(--cds-color-white)]">Applying to a role?</h2>
+          <p className="cds-body-secondary mb-5 max-w-xl text-white/90">
+            Your next role won&apos;t wait—add your résumé and a posting, see the gaps, and get short course recs
+            to close them and apply with confidence.
+          </p>
+          <button
+            type="button"
+            onClick={onCtaClick}
+            className="inline-flex w-full max-w-md items-center justify-center gap-2 rounded-full border border-white/30 bg-white px-4 py-2.5 text-sm font-semibold text-[#0f1114] shadow-md transition-colors hover:bg-[#f2f5fa] sm:w-auto"
+          >
+            <SparkleIcon className="h-4 w-4 shrink-0 text-[#0056d2]" />
+            {SUGGESTION_FIND_GAPS_LABEL}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export const MyLearning: React.FC<MyLearningProps> = ({
   onContinueCourse,
   courseData,
+  onOpenCoachFindGaps,
 }) => {
   const [activeTab, setActiveTab] = useState<TabId>('in-progress');
   const [selectedCohort, setSelectedCohort] = useState<CohortId>('careerswitchers');
   const { collections: savedSkillGapCollections } = useSavedSkillGapCourses();
 
-  /** Match In progress: other tabs use the full row width (calendar/leaderboard only on In progress). */
-  const showRightSidebar = activeTab === "in-progress";
+  const savedSkillGapItemCount = savedSkillGapCollections.reduce(
+    (n, col) => n + col.items.length,
+    0,
+  );
+  /** Skill-gap saves exist and user is on another tab — blue dot nudges toward Saved. */
+  const showSavedTabNotificationDot = savedSkillGapItemCount > 0 && activeTab !== "saved";
 
   return (
-    <div className="flex flex-col flex-1 overflow-y-auto max-w-[1440px] mx-auto bg-[var(--cds-color-white)] custom-scrollbar">
+    <div className="flex min-w-0 w-full flex-col flex-1 overflow-y-auto bg-[var(--cds-color-white)] custom-scrollbar max-w-[1440px] mx-auto">
       {/* Greeting header */}
       <div className="px-6 py-6">
         <div className="flex items-center gap-3">
@@ -603,107 +647,134 @@ export const MyLearning: React.FC<MyLearningProps> = ({
         </div>
       </div>
 
-      {/* Tabs — equal full-width cells; active underline spans each tab column */}
-      <div className="sticky top-0 z-10 bg-[var(--cds-color-white)] px-6 border-b border-[var(--cds-color-grey-100)]">
-        <div className="flex w-full">
-          {TABS.map((tab) => {
-            const isActive = tab.id === activeTab;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`cds-body-secondary flex min-w-0 flex-1 items-center justify-center gap-2 px-2 py-3 text-center transition-colors border-b-2 ${
-                  isActive
-                    ? 'border-[var(--cds-color-grey-975)] text-[var(--cds-color-grey-975)]'
-                    : 'border-transparent text-[var(--cds-color-grey-600)] hover:text-[var(--cds-color-grey-975)]'
-                }`}
-              >
-                <span className="leading-snug">{tab.label}</span>
-                {tab.newBadge ? (
-                  <span
-                    className="shrink-0 rounded-[var(--cds-border-radius-100)] bg-[var(--cds-color-green-100)] px-2 py-0.5 font-semibold text-[var(--cds-color-green-700)]"
-                    style={{ fontSize: '10px', lineHeight: '14px' }}
-                  >
-                    New
-                  </span>
-                ) : null}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Two-column content (sidebar only on In progress) */}
-      <div className="flex gap-6 px-6 pb-10 pt-6">
-        {/* Main content */}
-        <div
-          className={`min-w-0 space-y-5 ${showRightSidebar ? "flex-1" : "w-full max-w-none"}`}
-        >
-          {activeTab === 'in-progress' && (
-            <>
-              <SpecializationCard onResume={onContinueCourse} />
-              <SecondCourseCard courseData={courseData} onContinue={onContinueCourse} />
-            </>
-          )}
-
-          {activeTab === 'saved' &&
-            (savedSkillGapCollections.length === 0 ? (
-              <EmptyTab
-                icon="bookmark"
-                title="Saved courses"
-                body="Courses you save will appear here so you can come back to them later."
-              />
-            ) : (
-              <div className="space-y-8">
-                {savedSkillGapCollections.map((col) => (
-                  <div
-                    key={col.id}
-                    className="rounded-[var(--cds-border-radius-200)] border border-[var(--cds-color-grey-100)] bg-[var(--cds-color-white)] p-5"
-                  >
-                    <h3 className="cds-subtitle-md mb-4 text-[var(--cds-color-grey-975)]">{col.label}</h3>
-                    <div className="flex flex-col gap-3">
-                      {col.items.map((it, idx) => (
-                        <div
-                          key={`${it.title}-${it.provider}-${idx}`}
-                          className="flex gap-3 rounded-[var(--cds-border-radius-100)] border border-[var(--cds-color-grey-100)] bg-[var(--cds-color-grey-25)] p-3"
+      {/* Tabs + calendar column: fixed layout; only the main column body below swaps per tab */}
+      <div className="px-6">
+        <div className="flex gap-6">
+          <div className="min-w-0 flex-1">
+            <div className="sticky top-0 z-10 bg-[var(--cds-color-white)] border-b border-[var(--cds-color-grey-100)]">
+              <div className="flex w-full">
+                {TABS.map((tab) => {
+                  const isActive = tab.id === activeTab;
+                  return (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setActiveTab(tab.id)}
+                      className={`cds-body-secondary flex min-w-0 flex-1 items-center justify-center gap-2 px-2 py-3 text-center transition-colors border-b-2 ${
+                        isActive
+                          ? "border-[var(--cds-color-grey-975)] text-[var(--cds-color-grey-975)]"
+                          : "border-transparent text-[var(--cds-color-grey-600)] hover:text-[var(--cds-color-grey-975)]"
+                      }`}
+                    >
+                      <span className="leading-snug">{tab.label}</span>
+                      {tab.id === "saved" && showSavedTabNotificationDot ? (
+                        <span
+                          className="h-2 w-2 shrink-0 rounded-full bg-[var(--cds-color-blue-700)]"
+                          aria-hidden
+                        />
+                      ) : null}
+                      {tab.newBadge ? (
+                        <span
+                          className="shrink-0 rounded-[var(--cds-border-radius-100)] bg-[var(--cds-color-green-100)] px-2 py-0.5 font-semibold text-[var(--cds-color-green-700)]"
+                          style={{ fontSize: "10px", lineHeight: "14px" }}
                         >
-                          <img
-                            src={it.image}
-                            alt=""
-                            className="h-14 w-14 shrink-0 rounded-[var(--cds-border-radius-50)] object-cover"
-                          />
-                          <div className="min-w-0 flex-1">
-                            <p className="cds-body-secondary text-[var(--cds-color-grey-600)]">{it.provider}</p>
-                            <p className="cds-subtitle-sm mt-0.5 text-[var(--cds-color-grey-975)]">{it.title}</p>
-                            <p className="cds-body-tertiary mt-1 text-[var(--cds-color-grey-600)]">
-                              {it.timeCommitment} · {it.type} · ★ {it.rating}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ))}
+                          New
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
               </div>
-            ))}
-
-          {activeTab === 'completed' && (
-            <EmptyTab icon="check_circle" title="Completed courses" body="Courses you finish will appear here along with your certificates." />
-          )}
-
-          {activeTab === 'skills' && (
-            <EmptyTab icon="workspace_premium" title="Certificates & Badges" body="Your earned certificates and badges will appear here." />
-          )}
-
+            </div>
+          </div>
+          <div className="hidden w-[400px] shrink-0 md:block" aria-hidden />
         </div>
 
-        {showRightSidebar ? (
+        <div className="flex w-full min-w-0 gap-6 pb-10 pt-6">
+          <div className="min-w-0 w-full flex-1 space-y-5">
+            {activeTab === "in-progress" && (
+              <>
+                <SpecializationCard onResume={onContinueCourse} />
+                <SecondCourseCard courseData={courseData} onContinue={onContinueCourse} />
+              </>
+            )}
+
+            {activeTab === "saved" &&
+              (savedSkillGapCollections.length === 0 ? (
+                <EmptyTab
+                  icon="bookmark"
+                  title="Saved courses"
+                  body="Courses you save will appear here so you can come back to them later."
+                />
+              ) : (
+                <div className="space-y-8">
+                  {savedSkillGapCollections.map((col) => (
+                    <div
+                      key={col.id}
+                      className="rounded-[var(--cds-border-radius-200)] border border-[var(--cds-color-grey-100)] bg-[var(--cds-color-white)] p-5"
+                    >
+                      <h3 className="cds-subtitle-md mb-4 text-[var(--cds-color-grey-975)]">{col.label}</h3>
+                      <div className="flex flex-col gap-3">
+                        {col.items.map((it, idx) => (
+                          <div
+                            key={`${it.title}-${it.provider}-${idx}`}
+                            className="flex gap-3 rounded-[var(--cds-border-radius-100)] border border-[var(--cds-color-grey-100)] bg-[var(--cds-color-grey-25)] p-3"
+                          >
+                            <img
+                              src={it.image}
+                              alt=""
+                              className="h-14 w-14 shrink-0 rounded-[var(--cds-border-radius-50)] object-cover"
+                            />
+                            <div className="min-w-0 flex-1">
+                              <p className="cds-body-secondary text-[var(--cds-color-grey-600)]">{it.provider}</p>
+                              <p className="cds-subtitle-sm mt-0.5 text-[var(--cds-color-grey-975)]">{it.title}</p>
+                              <p className="cds-body-tertiary mt-1 text-[var(--cds-color-grey-600)]">
+                                {it.timeCommitment} · {it.type} · ★ {it.rating}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ))}
+
+            {activeTab === "completed" && (
+              <EmptyTab
+                icon="check_circle"
+                title="Completed courses"
+                body="Courses you finish will appear here along with your certificates."
+              />
+            )}
+
+            {activeTab === "career-tools" && (
+              <>
+                <EmptyTab
+                  icon="work"
+                  title="Career tools"
+                  body="Resume reviews, interview prep, and job search resources you use will show up here."
+                />
+                {onOpenCoachFindGaps ? (
+                  <CareerToolsCoachWidget onCtaClick={onOpenCoachFindGaps} />
+                ) : null}
+              </>
+            )}
+
+            {activeTab === "skills" && (
+              <EmptyTab
+                icon="workspace_premium"
+                title="Certificates & Badges"
+                body="Your earned certificates and badges will appear here."
+              />
+            )}
+          </div>
+
           <aside className="hidden md:flex w-[400px] shrink-0 flex-col gap-4">
             <LearningPlanCalendar />
             <CohortLeaderboard selectedCohort={selectedCohort} onSelectCohort={setSelectedCohort} />
           </aside>
-        ) : null}
+        </div>
       </div>
     </div>
   );

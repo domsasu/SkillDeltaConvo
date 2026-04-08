@@ -1,6 +1,6 @@
 
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { MainContent } from './components/MainContent';
@@ -31,6 +31,7 @@ import {
 } from './skills';
 import { Lesson, CourseData, Status, ContentType } from './types';
 import { CoachChatAside } from './components/CoachChatAside';
+import { SUGGESTION_FIND_GAPS_LABEL } from './components/entry/suggestion-buttons';
 import { SavedSkillGapCoursesProvider } from './contexts/saved-skill-gap-courses-context';
 
 type View = 'learning' | 'dashboard' | 'home' | 'assessment' | 'assessment-result' | 'badge-achievement';
@@ -670,6 +671,17 @@ const App: React.FC = () => {
 
   /** PPP-style coach chat (proxied to Next API on port 3001 in dev). */
   const [coachPanelOpen, setCoachPanelOpen] = useState(false);
+  /** When set, CoachChatAside sends this text via the same path as the chat suggestion chips. */
+  const [coachLaunchRequest, setCoachLaunchRequest] = useState<{ id: number; text: string } | null>(null);
+
+  const openCoachWithFindGaps = useCallback(() => {
+    setCoachPanelOpen(true);
+    setCoachLaunchRequest({ id: Date.now(), text: SUGGESTION_FIND_GAPS_LABEL });
+  }, []);
+
+  const clearCoachLaunchRequest = useCallback(() => {
+    setCoachLaunchRequest(null);
+  }, []);
 
   // Logic to start the Resume flow - go straight to learning (no time goal modal)
   const handleResumeClick = () => {
@@ -819,6 +831,7 @@ const App: React.FC = () => {
             dailyGoalCompletions={dailyGoalCompletions}
             onTakeSkillAssessment={navigateToAssessment}
             assessmentResults={assessmentResults}
+            onOpenCoachFindGaps={openCoachWithFindGaps}
           />
         )}
 
@@ -963,7 +976,11 @@ const App: React.FC = () => {
           }`}
         >
           <div className="flex h-full w-[400px] flex-col">
-            <CoachChatAside onClose={() => setCoachPanelOpen(false)} />
+            <CoachChatAside
+              onClose={() => setCoachPanelOpen(false)}
+              launchRequest={coachLaunchRequest}
+              onConsumedLaunchRequest={clearCoachLaunchRequest}
+            />
           </div>
         </aside>
       </div>
