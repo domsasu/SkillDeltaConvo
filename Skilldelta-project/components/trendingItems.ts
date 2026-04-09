@@ -9,7 +9,17 @@ export type TrendingCourseItem = {
   type: string;
   rating: number;
   image: string;
+  /** Direct Coursera course/specialization URL when known; otherwise use {@link courseraCourseUrl}. */
+  courseUrl?: string;
 };
+
+/** Link for Saved tab and external CTAs: explicit URL or Coursera search for title + provider. */
+export function courseraCourseUrl(item: Pick<TrendingCourseItem, "title" | "provider" | "courseUrl">): string {
+  const direct = item.courseUrl?.trim();
+  if (direct) return direct;
+  const q = `${item.title} ${item.provider}`.trim();
+  return `https://www.coursera.org/search?query=${encodeURIComponent(q)}`;
+}
 
 export const trendingItems: {
   mostPopular: TrendingCourseItem[];

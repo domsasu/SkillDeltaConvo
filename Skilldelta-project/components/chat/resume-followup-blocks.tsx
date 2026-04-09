@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { SKILL_GAP_ROLE_UPLOAD_FOCUS } from "@/components/skillGapConstants";
 import { getCourseraShortCoursesForPrioritySkill } from "@/components/rolePriorityCourseraCourses";
-import type { TrendingCourseItem } from "@/components/trendingItems";
+import { courseraCourseUrl, type TrendingCourseItem } from "@/components/trendingItems";
+import { useSkillGapCoachNavOptional } from "@/contexts/skill-gap-coach-nav-context";
 import {
   getSkillGapCollectionId,
   useSavedSkillGapCoursesOptional,
@@ -14,6 +15,7 @@ const COURSE_CARD_REVEAL_DELAY_MS = 3000;
 
 function CourseRow({ item }: { item: TrendingCourseItem }) {
   const savedCtx = useSavedSkillGapCoursesOptional();
+  const coachNav = useSkillGapCoachNavOptional();
   const [localSaved, setLocalSaved] = useState(false);
   const [playFill, setPlayFill] = useState(false);
   const animTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -40,6 +42,7 @@ function CourseRow({ item }: { item: TrendingCourseItem }) {
     if (savedCtx) {
       if (next) {
         savedCtx.addCourseToSkillGapCollection(item);
+        coachNav?.onAfterSaveCourseToMyLearning();
         setPlayFill(true);
         if (animTimeoutRef.current) clearTimeout(animTimeoutRef.current);
         animTimeoutRef.current = setTimeout(() => {
@@ -66,7 +69,7 @@ function CourseRow({ item }: { item: TrendingCourseItem }) {
   };
 
   return (
-    <div className="group flex cursor-pointer items-center gap-3 rounded-xl border border-[#eaeef4] bg-white p-2.5 shadow-sm transition-colors hover:border-[#c9d6ee]">
+    <div className="group flex items-center gap-3 rounded-xl border border-[#eaeef4] bg-white p-2.5 shadow-sm transition-colors hover:border-[#c9d6ee]">
       <div className="flex shrink-0 items-start pt-0.5">
         <button
           type="button"
@@ -91,27 +94,35 @@ function CourseRow({ item }: { item: TrendingCourseItem }) {
           </span>
         </button>
       </div>
-      <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[#eef2f7]">
-        <img src={item.image} alt="" className="h-full w-full object-cover" />
-      </div>
-      <div className="min-w-0 flex-1">
-        <p className="mb-0.5 text-xs text-[#5b6780]">{item.provider}</p>
-        <p className="text-sm font-semibold leading-snug text-[#0f1114] group-hover:text-[#0056d2]">
-          {item.title}
-        </p>
-        <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-[#5b6780]">
-          <span>{item.timeCommitment}</span>
-          <span aria-hidden>·</span>
-          <span>{item.type}</span>
-          <span aria-hidden>·</span>
-          <span className="inline-flex items-center gap-0.5">
-            <span className="text-[#0f1114]" aria-hidden>
-              ★
-            </span>
-            {item.rating}
-          </span>
+      <a
+        href={courseraCourseUrl(item)}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label={`Open ${item.title} on Coursera`}
+        className="flex min-w-0 flex-1 items-center gap-3 text-left outline-none focus-visible:ring-2 focus-visible:ring-[#0056d2] focus-visible:ring-offset-2"
+      >
+        <div className="h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-[#eef2f7]">
+          <img src={item.image} alt="" className="h-full w-full object-cover" />
         </div>
-      </div>
+        <div className="min-w-0 flex-1">
+          <p className="mb-0.5 text-xs text-[#5b6780]">{item.provider}</p>
+          <p className="text-sm font-semibold leading-snug text-[#0f1114] group-hover:text-[#0056d2]">
+            {item.title}
+          </p>
+          <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 text-xs text-[#5b6780]">
+            <span>{item.timeCommitment}</span>
+            <span aria-hidden>·</span>
+            <span>{item.type}</span>
+            <span aria-hidden>·</span>
+            <span className="inline-flex items-center gap-0.5">
+              <span className="text-[#0f1114]" aria-hidden>
+                ★
+              </span>
+              {item.rating}
+            </span>
+          </div>
+        </div>
+      </a>
     </div>
   );
 }

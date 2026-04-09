@@ -33,6 +33,8 @@ import { Lesson, CourseData, Status, ContentType } from './types';
 import { CoachChatAside } from './components/CoachChatAside';
 import { SUGGESTION_FIND_GAPS_LABEL } from './components/entry/suggestion-buttons';
 import { SavedSkillGapCoursesProvider } from './contexts/saved-skill-gap-courses-context';
+import { SkillGapCoachNavProvider } from './contexts/skill-gap-coach-nav-context';
+import type { TabId } from './components/MyLearning';
 
 type View = 'learning' | 'dashboard' | 'home' | 'assessment' | 'assessment-result' | 'badge-achievement';
 
@@ -683,6 +685,20 @@ const App: React.FC = () => {
     setCoachLaunchRequest(null);
   }, []);
 
+  const [pendingMyLearningTab, setPendingMyLearningTab] = useState<TabId | null>(null);
+
+  const navigateToMyLearningSaved = useCallback(() => {
+    setPendingMyLearningTab('saved');
+    setShowModuleComplete(false);
+    setShowDailyGoalsComplete(false);
+    setShowSkillProgressView(false);
+    setCurrentView('dashboard');
+  }, []);
+
+  const clearPendingMyLearningTab = useCallback(() => {
+    setPendingMyLearningTab(null);
+  }, []);
+
   // Logic to start the Resume flow - go straight to learning (no time goal modal)
   const handleResumeClick = () => {
     setDailyGoalLessonIds(buildDailyGoalLessonIds(courseData, activeLessonId, dailyTimeGoal));
@@ -740,6 +756,7 @@ const App: React.FC = () => {
 
   return (
     <SavedSkillGapCoursesProvider>
+    <SkillGapCoachNavProvider onAfterSaveCourseToMyLearning={navigateToMyLearningSaved}>
     <div className="flex flex-col h-screen bg-[var(--cds-color-grey-25)] text-[var(--cds-color-grey-975)]">
       <Header 
         currentSP={dailySP} // Use daily SP for the header goal
@@ -832,6 +849,8 @@ const App: React.FC = () => {
             onTakeSkillAssessment={navigateToAssessment}
             assessmentResults={assessmentResults}
             onOpenCoachFindGaps={openCoachWithFindGaps}
+            pendingTab={pendingMyLearningTab}
+            onConsumedPendingTab={clearPendingMyLearningTab}
           />
         )}
 
@@ -985,6 +1004,7 @@ const App: React.FC = () => {
         </aside>
       </div>
     </div>
+    </SkillGapCoachNavProvider>
     </SavedSkillGapCoursesProvider>
   );
 };

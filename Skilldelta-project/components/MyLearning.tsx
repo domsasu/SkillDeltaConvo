@@ -1,11 +1,15 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { SUGGESTION_FIND_GAPS_LABEL } from '@/components/entry/suggestion-buttons';
 import { SparkleIcon } from '@/components/shared/sparkle-icon';
+import { courseraCourseUrl } from '@/components/trendingItems';
 import { useSavedSkillGapCourses } from '@/contexts/saved-skill-gap-courses-context';
 import { CourseData, Lesson, Status } from '../types';
 import { courseCompletionDisplayPercent } from '../skills';
 import { LetterAvatar } from './WeeklyLearningLeaderboard';
+
+export type TabId = 'in-progress' | 'saved' | 'completed' | 'career-tools' | 'skills';
+
 interface MyLearningProps {
   onContinueCourse: () => void;
   activeLesson: Lesson;
@@ -16,9 +20,10 @@ interface MyLearningProps {
   assessmentResults?: Record<string, number> | null;
   /** Opens the learning coach and starts the “Find gaps for this role” thread. */
   onOpenCoachFindGaps?: () => void;
+  /** When set (e.g. after saving from coach), switch to this tab then clear via callback. */
+  pendingTab?: TabId | null;
+  onConsumedPendingTab?: () => void;
 }
-
-type TabId = 'in-progress' | 'saved' | 'completed' | 'career-tools' | 'skills';
 
 const TABS: { id: TabId; label: string; newBadge?: boolean }[] = [
   { id: 'in-progress', label: 'In progress' },
@@ -618,6 +623,8 @@ export const MyLearning: React.FC<MyLearningProps> = ({
   onContinueCourse,
   courseData,
   onOpenCoachFindGaps,
+  pendingTab,
+  onConsumedPendingTab,
 }) => {
   const [activeTab, setActiveTab] = useState<TabId>('in-progress');
   const [selectedCohort, setSelectedCohort] = useState<CohortId>('careerswitchers');
@@ -629,6 +636,27 @@ export const MyLearning: React.FC<MyLearningProps> = ({
   );
   /** Skill-gap saves exist and user is on another tab — blue dot nudges toward Saved. */
   const showSavedTabNotificationDot = savedSkillGapItemCount > 0 && activeTab !== "saved";
+
+  const prevSavedCountRef = useRef<number | null>(null);
+  const [savedTabDotFlicker, setSavedTabDotFlicker] = useState(false);
+
+  useEffect(() => {
+    if (prevSavedCountRef.current === null) {
+      prevSavedCountRef.current = savedSkillGapItemCount;
+      return;
+    }
+    const prev = prevSavedCountRef.current;
+    if (prev === 0 && savedSkillGapItemCount === 1) {
+      setSavedTabDotFlicker(true);
+    }
+    prevSavedCountRef.current = savedSkillGapItemCount;
+  }, [savedSkillGapItemCount]);
+
+  useEffect(() => {
+    if (!pendingTab) return;
+    setActiveTab(pendingTab);
+    onConsumedPendingTab?.();
+  }, [pendingTab, onConsumedPendingTab]);
 
   return (
     <div className="flex min-w-0 w-full flex-col flex-1 overflow-y-auto bg-[var(--cds-color-white)] custom-scrollbar max-w-[1440px] mx-auto">
@@ -669,8 +697,11 @@ export const MyLearning: React.FC<MyLearningProps> = ({
                       <span className="leading-snug">{tab.label}</span>
                       {tab.id === "saved" && showSavedTabNotificationDot ? (
                         <span
-                          className="h-2 w-2 shrink-0 rounded-full bg-[var(--cds-color-blue-700)]"
+                          className={`h-2 w-2 shrink-0 rounded-full bg-[var(--cds-color-blue-700)] ${
+                            savedTabDotFlicker ? "animate-saved-tab-dot-flicker" : ""
+                          }`}
                           aria-hidden
+                          onAnimationEnd={() => setSavedTabDotFlicker(false)}
                         />
                       ) : null}
                       {tab.newBadge ? (
@@ -716,9 +747,13 @@ export const MyLearning: React.FC<MyLearningProps> = ({
                       <h3 className="cds-subtitle-md mb-4 text-[var(--cds-color-grey-975)]">{col.label}</h3>
                       <div className="flex flex-col gap-3">
                         {col.items.map((it, idx) => (
-                          <div
+                          <a
                             key={`${it.title}-${it.provider}-${idx}`}
-                            className="flex gap-3 rounded-[var(--cds-border-radius-100)] border border-[var(--cds-color-grey-100)] bg-[var(--cds-color-grey-25)] p-3"
+                            href={courseraCourseUrl(it)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            aria-label={`Open ${it.title} on Coursera`}
+                            className="group flex gap-3 rounded-[var(--cds-border-radius-100)] border border-[var(--cds-color-grey-100)] bg-[var(--cds-color-grey-25)] p-3 text-left transition-colors hover:border-[var(--cds-color-blue-700)]/35 hover:bg-[var(--cds-color-grey-50)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--cds-color-blue-700)]"
                           >
                             <img
                               src={it.image}
@@ -727,12 +762,14 @@ export const MyLearning: React.FC<MyLearningProps> = ({
                             />
                             <div className="min-w-0 flex-1">
                               <p className="cds-body-secondary text-[var(--cds-color-grey-600)]">{it.provider}</p>
-                              <p className="cds-subtitle-sm mt-0.5 text-[var(--cds-color-grey-975)]">{it.title}</p>
+                              <p className="cds-subtitle-sm mt-0.5 text-[var(--cds-color-grey-975)] underline-offset-2 group-hover:text-[var(--cds-color-blue-700)] group-hover:underline">
+                                {it.title}
+                              </p>
                               <p className="cds-body-tertiary mt-1 text-[var(--cds-color-grey-600)]">
                                 {it.timeCommitment} · {it.type} · ★ {it.rating}
                               </p>
                             </div>
-                          </div>
+                          </a>
                         ))}
                       </div>
                     </div>
